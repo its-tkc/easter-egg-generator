@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Eggspedition: The Ultimate Easter Egg Message Generator with interactive cracking, sound effects, collection book, and hidden secrets.">
+  <title>Eggspedition 🥚 Mystery Easter Egg Generator</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Outfit:wght@400;500;600;700;800&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <canvas id="particleCanvas" aria-hidden="true"></canvas>
+
+  <div class="app-container">
+    <!-- Top Navigation Bar -->
+    <header class="app-header">
+      <div class="logo-area" id="logoSecretTrigger" title="Click 5 times for a secret!">
+        <span class="logo-icon" aria-hidden="true">🥚</span>
+        <div class="logo-text">
+          <h1>Eggspedition</h1>
+          <span class="tagline">Mystery Easter Egg Generator</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Eggdex Counter -->
+        <button id="openEggdexBtn" class="pill-btn eggdex-pill" aria-label="Open Eggdex Collection Book">
+          <span class="icon">📖</span>
+          <span class="label">Eggdex</span>
+          <span id="eggdexCounter" class="badge">0/50</span>
+        </button>
+
+        <!-- Egg Hunt Mini Game -->
+        <button id="startHuntBtn" class="pill-btn hunt-pill" aria-label="Play Egg Hunt Mini-Game">
+          <span class="icon">🎯</span>
+          <span class="label">Hunt Mode</span>
+        </button>
+
+        <!-- Custom Egg Maker -->
+        <button id="openCustomModalBtn" class="pill-btn custom-pill" aria-label="Create Custom Egg">
+          <span class="icon">✨</span>
+          <span class="label">Create Secret</span>
+        </button>
+
+        <!-- Sound Toggle -->
+        <button id="soundToggleBtn" class="icon-btn" aria-label="Toggle Sound Effects" title="Toggle Sound">
+          <span id="soundIcon">🔊</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Hatchery View -->
+    <main class="main-content" id="hatcheryView">
+      <!-- Filter Chips -->
+      <section class="category-section" aria-label="Message Categories">
+        <div class="category-scroll" role="radiogroup" aria-label="Select Easter Egg Category">
+          <button class="cat-pill active" data-category="all" role="radio" aria-checked="true">🎲 Surprise Me</button>
+          <button class="cat-pill" data-category="dev" role="radio" aria-checked="false">💻 Dev &amp; Hacker</button>
+          <button class="cat-pill" data-category="gaming" role="radio" aria-checked="false">🎮 Gamer Lore</button>
+          <button class="cat-pill" data-category="fortune" role="radio" aria-checked="false">🔮 Quirky Fortunes</button>
+          <button class="cat-pill" data-category="absurd" role="radio" aria-checked="false">🛸 Cosmic Absurd</button>
+          <button class="cat-pill" data-category="classic" role="radio" aria-checked="false">🐇 Easter Bunny</button>
+        </div>
+      </section>
+
+      <!-- The Hatching Arena -->
+      <section class="stage-section" aria-label="Egg Cracking Arena">
+        <!-- Shell Pattern Switcher -->
+        <div class="shell-selector" aria-label="Choose Egg Theme">
+          <span class="selector-label">Shell Theme:</span>
+          <div class="shell-buttons" id="shellButtons">
+            <button class="shell-btn active" data-shell="galaxy" title="Cosmic Galaxy">🌌</button>
+            <button class="shell-btn" data-shell="cyberpunk" title="Cyberpunk Neon">⚡</button>
+            <button class="shell-btn" data-shell="gold" title="Royal Golden">👑</button>
+            <button class="shell-btn" data-shell="pixel" title="8-Bit Pixel">👾</button>
+            <button class="shell-btn" data-shell="dragon" title="Dragon Fire">🔥</button>
+            <button class="shell-btn" data-shell="pastel" title="Pastel Spring">🌸</button>
+          </div>
+        </div>
+
+        <!-- Interactive Egg Canvas & SVG Container -->
+        <div class="egg-stage">
+          <!-- Background Aura Ring -->
+          <div class="egg-aura" id="eggAura" aria-hidden="true"></div>
+
+          <!-- Egg Container Button for A11y & Keyboard Tap -->
+          <div 
+            id="eggContainer" 
+            class="egg-container shell-galaxy" 
+            role="button" 
+            tabindex="0" 
+            aria-label="Mystery Easter Egg. Click or press Enter/Space to crack."
+          >
+            <!-- SVG Rendered Egg with Detailed Patterns and Cracks -->
+            <svg id="eggSvg" class="egg-svg" viewBox="0 0 200 260" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <!-- Galaxy Gradients -->
+                <radialGradient id="galaxyGrad" cx="40%" cy="35%" r="65%">
+                  <stop offset="0%" stop-color="#9d4edd" />
+                  <stop offset="45%" stop-color="#5a189a" />
+                  <stop offset="85%" stop-color="#240046" />
+                  <stop offset="100%" stop-color="#10002b" />
+                </radialGradient>
+
+                <!-- Cyberpunk Gradient -->
+                <radialGradient id="cyberGrad" cx="30%" cy="30%" r="70%">
+                  <stop offset="0%" stop-color="#00f5d4" />
+                  <stop offset="50%" stop-color="#7b2cbf" />
+                  <stop offset="100%" stop-color="#0f0c29" />
+                </radialGradient>
+
+                <!-- Golden Gradient -->
+                <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#fff3b0" />
+                  <stop offset="30%" stop-color="#ffd166" />
+                  <stop offset="70%" stop-color="#e09f3e" />
+                  <stop offset="100%" stop-color="#9e6912" />
+                </linearGradient>
+
+                <!-- Pixel / 8-bit Gradient -->
+                <linearGradient id="pixelGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#48cae4" />
+                  <stop offset="50%" stop-color="#0077b6" />
+                  <stop offset="100%" stop-color="#023e8a" />
+                </linearGradient>
+
+                <!-- Dragon Flame Gradient -->
+                <radialGradient id="dragonGrad" cx="40%" cy="35%" r="65%">
+                  <stop offset="0%" stop-color="#ffb703" />
+                  <stop offset="40%" stop-color="#fb8500" />
+                  <stop offset="80%" stop-color="#d00000" />
+                  <stop offset="100%" stop-color="#370617" />
+                </radialGradient>
+
+                <!-- Pastel Spring Gradient -->
+                <radialGradient id="pastelGrad" cx="35%" cy="30%" r="70%">
+                  <stop offset="0%" stop-color="#ffcbf2" />
+                  <stop offset="45%" stop-color="#f3c4fb" />
+                  <stop offset="75%" stop-color="#cddafd" />
+                  <stop offset="100%" stop-color="#b6ccfe" />
+                </radialGradient>
+
+                <!-- Shadow Filter -->
+                <filter id="eggGlow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur stdDeviation="8" result="blur" />
+                  <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                </filter>
+              </defs>
+
+              <!-- Egg Base Shell Path -->
+              <path 
+                id="eggShellBase"
+                class="egg-base-path" 
+                d="M 100,10 C 155,10 190,75 190,160 C 190,225 155,250 100,250 C 45,250 10,225 10,160 C 10,75 45,10 100,10 Z" 
+                fill="url(#galaxyGrad)" 
+              />
+
+              <!-- Decorative Shell Overlays -->
+              <g id="shellDecorations" class="shell-decorations">
+                <!-- Stars for Galaxy (default) -->
+                <circle cx="60" cy="80" r="2.5" fill="#ffffff" opacity="0.8" class="star star-1" />
+                <circle cx="130" cy="110" r="3" fill="#ffffff" opacity="0.9" class="star star-2" />
+                <circle cx="80" cy="170" r="2" fill="#ffd166" opacity="0.7" class="star star-3" />
+                <circle cx="150" cy="180" r="2.5" fill="#f72585" opacity="0.8" class="star star-4" />
+                <path d="M90 60 Q 110 80 130 65" stroke="rgba(255,255,255,0.4)" stroke-width="2" fill="none" stroke-dasharray="3 3"/>
+                <path d="M50 140 Q 100 170 150 130" stroke="rgba(255,255,255,0.3)" stroke-width="3" fill="none"/>
+              </g>
+
+              <!-- Egg Highlight (Glossy Shine) -->
+              <ellipse cx="65" cy="70" rx="28" ry="48" transform="rotate(-25 65 70)" fill="white" opacity="0.25" />
+
+              <!-- Crack Overlays (Revealed per tap) -->
+              <g id="crackLayer1" class="crack-layer" opacity="0">
+                <path d="M 100,30 L 115,65 L 95,95 L 120,130" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+              </g>
+
+              <g id="crackLayer2" class="crack-layer" opacity="0">
+                <path d="M 120,130 L 85,160 L 110,195 L 90,230" stroke="#fff" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+                <path d="M 95,95 L 60,110 L 45,90" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" />
+                <path d="M 115,65 L 155,75" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" />
+              </g>
+
+              <g id="crackLayer3" class="crack-layer" opacity="0">
+                <path d="M 85,160 L 140,175 L 170,165" stroke="#ffe066" stroke-width="4" fill="none" stroke-linecap="round" />
+                <path d="M 110,195 L 135,225" stroke="#ffe066" stroke-width="3" fill="none" stroke-linecap="round" />
+                <path d="M 60,110 L 30,140 L 40,180" stroke="#ffe066" stroke-width="3" fill="none" stroke-linecap="round" />
+              </g>
+            </svg>
+
+            <!-- Egg Shadow on Pedestal -->
+            <div class="egg-pedestal-shadow"></div>
+          </div>
+
+          <!-- Cracking Tap Indicator -->
+          <div class="crack-meter-wrapper">
+            <div class="crack-meter" id="crackMeter" aria-label="Crack progress: 0 of 3 taps">
+              <span class="meter-node active" id="node1"></span>
+              <span class="meter-node" id="node2"></span>
+              <span class="meter-node" id="node3"></span>
+            </div>
+            <p class="tap-instruction" id="tapInstruction">
+              <span class="key-hint">Click</span> or press <kbd>Space</kbd> to crack the egg!
+            </p>
+          </div>
+
+          <!-- Rapid Hatch & Actions -->
+          <div class="stage-actions">
+            <button id="quickHatchBtn" class="action-btn secondary-action">
+              ⚡ Instant Hatch
+            </button>
+            <button id="resetEggBtn" class="action-btn text-action" style="display: none;">
+              🔄 Get New Egg
+            </button>
+          </div>
+        </div>
+
+        <!-- Hatched Message Card (Revealed upon crack) -->
+        <article 
+          id="messageCard" 
+          class="message-card hidden" 
+          aria-live="polite" 
+          role="status"
+        >
+          <div class="card-glow" id="cardGlow"></div>
+          
+          <div class="card-header">
+            <span class="rarity-badge" id="cardRarity">🌟 EPIC</span>
+            <span class="category-badge" id="cardCategory">💻 Dev Secret</span>
+            <span class="egg-number" id="cardEggNumber">#00</span>
+          </div>
+
+          <div class="card-body">
+            <div class="message-icon" id="messageEmoji" aria-hidden="true">🧙‍♂️</div>
+            <h2 class="easter-title" id="easterTitle">Secret Found!</h2>
+            <blockquote class="easter-quote" id="easterText">
+              "Loading secret easter egg message..."
+            </blockquote>
+            <p class="easter-flavor" id="easterFlavor">
+              Flavor lore notes appear here.
+            </p>
+          </div>
+
+          <div class="card-footer">
+            <div class="card-btn-group">
+              <button id="copyMessageBtn" class="card-btn" title="Copy text to clipboard">
+                <span class="btn-icon">📋</span> Copy
+              </button>
+              <button id="speakMessageBtn" class="card-btn" title="Speak message aloud">
+                <span class="btn-icon">🔊</span> Listen
+              </button>
+              <button id="shareEggBtn" class="card-btn" title="Share this Easter Egg">
+                <span class="btn-icon">🔗</span> Share
+              </button>
+            </div>
+            <button id="hatchAnotherBtn" class="card-btn primary-card-btn">
+              Hatch Another 🥚
+            </button>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <!-- Eggdex Modal -->
+    <div id="eggdexModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="eggdexTitle">
+      <div class="modal-dialog large-dialog">
+        <header class="modal-header">
+          <div class="modal-title-wrap">
+            <span class="modal-icon">📖</span>
+            <h2 id="eggdexTitle">The Secret Eggdex</h2>
+          </div>
+          <button class="close-modal-btn" id="closeEggdexBtn" aria-label="Close Eggdex">&times;</button>
+        </header>
+        
+        <div class="eggdex-summary">
+          <div class="progress-bar-container">
+            <div class="progress-bar-fill" id="eggdexProgressFill" style="width: 0%"></div>
+          </div>
+          <span class="eggdex-stats-text" id="eggdexStatsText">0 of 50 Discovered (0%)</span>
+          <button id="resetCollectionBtn" class="text-link-danger">Reset Collection</button>
+        </div>
+
+        <div class="modal-filters">
+          <button class="filter-chip active" data-filter="all">All</button>
+          <button class="filter-chip" data-filter="unlocked">Discovered</button>
+          <button class="filter-chip" data-filter="locked">Undiscovered</button>
+        </div>
+
+        <div class="eggdex-grid" id="eggdexGrid">
+          <!-- Populated by JavaScript -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Custom Easter Egg Creator Modal -->
+    <div id="customModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="customTitle">
+      <div class="modal-dialog">
+        <header class="modal-header">
+          <div class="modal-title-wrap">
+            <span class="modal-icon">✨</span>
+            <h2 id="customTitle">Craft a Custom Easter Egg</h2>
+          </div>
+          <button class="close-modal-btn" id="closeCustomBtn" aria-label="Close dialog">&times;</button>
+        </header>
+
+        <form id="customEggForm" class="custom-form">
+          <p class="form-help">Write your own secret joke, surprise message, or riddle. It creates a special link you can share with friends!</p>
+
+          <div class="form-group">
+            <label for="customTitleInput">Secret Title / Headline:</label>
+            <input type="text" id="customTitleInput" placeholder="e.g., A Message from the Future" required maxlength="50">
+          </div>
+
+          <div class="form-group">
+            <label for="customMessageInput">Easter Egg Message:</label>
+            <textarea id="customMessageInput" rows="3" placeholder="e.g., Don't look behind you, but there's a slice of pizza calling your name." required maxlength="250"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="customFlavorInput">Flavor Note (Optional):</label>
+            <input type="text" id="customFlavorInput" placeholder="e.g., Handcrafted by an anonymous friend" maxlength="80">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="customThemeSelect">Shell Theme:</label>
+              <select id="customThemeSelect">
+                <option value="galaxy">Cosmic Galaxy</option>
+                <option value="cyberpunk">Cyberpunk Neon</option>
+                <option value="gold">Royal Golden</option>
+                <option value="pixel">8-Bit Pixel</option>
+                <option value="dragon">Dragon Fire</option>
+                <option value="pastel">Pastel Spring</option>
+              </select>
+            </div>
+            <div class="form-group flex-1">
+              <label for="customRaritySelect">Rarity Grade:</label>
+              <select id="customRaritySelect">
+                <option value="Rare">Rare 🔵</option>
+                <option value="Epic">Epic 🟣</option>
+                <option value="Legendary">Legendary 🟡</option>
+                <option value="Mythic">Mythic 🌈</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="primary-btn">Generate Secret Egg Link 🎁</button>
+          </div>
+
+          <div id="customResultArea" class="custom-result-area hidden">
+            <label for="customShareLink">Your Secret Egg URL:</label>
+            <div class="copy-input-group">
+              <input type="text" id="customShareLink" readonly>
+              <button type="button" id="copyShareLinkBtn" class="pill-btn">Copy</button>
+            </div>
+            <p class="hint-small">Send this link to anyone and the app will open directly to your custom egg!</p>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Egg Hunt Mini Game Overlay -->
+    <div id="huntOverlay" class="hunt-overlay hidden" aria-hidden="true">
+      <div class="hunt-hud">
+        <div class="hud-item timer">⏱️ Time: <span id="huntTimer">30</span>s</div>
+        <div class="hud-item score">🥚 Eggs Found: <span id="huntScore">0</span>/10</div>
+        <button id="quitHuntBtn" class="pill-btn danger-pill">Exit Hunt</button>
+      </div>
+      <div id="huntPlayground" class="hunt-playground">
+        <!-- Eggs dynamically injected -->
+      </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast hidden" role="alert" aria-live="assertive">
+      <span id="toastIcon">✨</span>
+      <span id="toastMsg">Notification message</span>
+    </div>
+
+    <!-- Footer with Geeky Hints -->
+    <footer class="app-footer">
+      <div class="footer-content">
+        <p>Built with pure HTML5, CSS &amp; Web Audio API. Zero dependencies.</p>
+        <p class="secret-hint">
+          💡 <span class="dim">Developer Tip:</span> Try opening the Chrome DevTools Console (<kbd>F12</kbd> or <kbd>Ctrl+Shift+I</kbd>) or entering the Konami Code (<kbd>↑</kbd><kbd>↑</kbd><kbd>↓</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd><kbd>←</kbd><kbd>→</kbd><kbd>B</kbd><kbd>A</kbd>) for hidden developer secrets!
+        </p>
+      </div>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
